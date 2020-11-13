@@ -1,0 +1,5 @@
+lcd.c:3:6:lcd_changeColor	48	static
+lcd.c:30:6:lcd_changeColorRGB	40	static
+lcd.c:36:6:lcd_clear	8	static
+lcd.c:41:6:lcd_showMessage	72	static
+lcd.c:47:6:lcd_appendMessage	16	static
