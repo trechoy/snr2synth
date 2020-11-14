@@ -19,11 +19,11 @@
 #include <stdlib.h>
 
 // RGB Framebuffers
-uint8_t frameBuffer[3*60];
+uint8_t frameBuffer[3*12];
 uint8_t frameBuffer2[3*20];
 
 // Helper defines
-#define newColor(r, g, b) (((uint32_t)(r) << 16) | ((uint32_t)(g) <<  8) | (b))
+#define newColor(r, g, b) (((uint32_t)(b) << 16) | ((uint32_t)(g) <<  8) | (r))
 #define Red(c) ((uint8_t)((c >> 16) & 0xFF))
 #define Green(c) ((uint8_t)((c >> 8) & 0xFF))
 #define Blue(c) ((uint8_t)(c & 0xFF))
@@ -62,6 +62,17 @@ void visRainbow(uint8_t *frameBuffer, uint32_t frameBufferSize, uint32_t effectL
 		frameBuffer[i*3 + 0] = color & 0xFF;
 		frameBuffer[i*3 + 1] = color >> 8 & 0xFF;
 		frameBuffer[i*3 + 2] = color >> 16 & 0xFF;
+	}
+}
+
+void visRing(uint8_t *frameBuffer, uint32_t frameBufferSize, int numLEDs)
+{
+	uint32_t color = newColor(60,0,13);
+	for (int i = 0; i < ((frameBufferSize / 3) - (12 - numLEDs)); i++)
+	{
+		frameBuffer[i*3 + 0] = (uint8_t)(color & 0xFF);
+		frameBuffer[i*3 + 1] = (uint8_t)(color >> 8 & 0xFF);
+		frameBuffer[i*3 + 2] = (uint8_t)(color >> 16 & 0xFF);
 	}
 }
 
@@ -107,10 +118,12 @@ void visHandle2()
 	if(HAL_GetTick() - timestamp > 10)
 	{
 		timestamp = HAL_GetTick();
+		memset(frameBuffer, 0, sizeof(frameBuffer));
 
 		// Animate next frame, each effect into each output RGB framebuffer
-		visRainbow(frameBuffer, sizeof(frameBuffer), 15);
-		visDots(frameBuffer2, sizeof(frameBuffer2), 50, 40);
+		//visRainbow(frameBuffer, sizeof(frameBuffer), 15);
+		//visDots(frameBuffer, sizeof(frameBuffer), 70, 40);
+		visRing(frameBuffer, sizeof(frameBuffer), 10);
 	}
 }
 
@@ -136,16 +149,16 @@ void visInit()
 		ws2812b.item[i].channel = i;
 
 		// Every even output line has second frameBuffer2 with different effect
-		if(i % 2 == 0)
-		{
+		//if(i % 2 == 0)
+		//{
 			// Your RGB framebuffer
 			ws2812b.item[i].frameBufferPointer = frameBuffer;
 			// RAW size of framebuffer
 			ws2812b.item[i].frameBufferSize = sizeof(frameBuffer);
-		} else {
+		/*} else {
 			ws2812b.item[i].frameBufferPointer = frameBuffer2;
 			ws2812b.item[i].frameBufferSize = sizeof(frameBuffer2);
-		}
+		}*/
 
 	}
 

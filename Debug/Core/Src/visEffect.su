@@ -1,6 +1,7 @@
 visEffect.c:32:10:Wheel	16	static
 visEffect.c:48:6:visRainbow	32	static
-visEffect.c:69:6:visDots	32	static
-visEffect.c:103:6:visHandle2	8	static
-visEffect.c:118:6:visInit	16	static
-visEffect.c:157:6:visHandle	8	static
+visEffect.c:68:6:visRing	32	static
+visEffect.c:80:6:visDots	32	static
+visEffect.c:114:6:visHandle2	8	static
+visEffect.c:131:6:visInit	16	static
+visEffect.c:170:6:visHandle	8	static
