@@ -19,5 +19,6 @@
 
 void visInit();
 void visHandle();
+void updateRingLED(int numRing, int numLEDs);
 
 #endif /* VISEFFECT_H_ */

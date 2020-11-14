@@ -13,14 +13,14 @@
 */
 
 #include <stdint.h>
-
+#include <string.h>
 #include "stm32f4xx_hal.h"
 #include "ws2812b.h"
 #include <stdlib.h>
 
 // RGB Framebuffers
 uint8_t frameBuffer[3*12];
-uint8_t frameBuffer2[3*20];
+//uint8_t frameBuffer2[3*20];
 
 // Helper defines
 #define newColor(r, g, b) (((uint32_t)(b) << 16) | ((uint32_t)(g) <<  8) | (r))
@@ -65,14 +65,14 @@ void visRainbow(uint8_t *frameBuffer, uint32_t frameBufferSize, uint32_t effectL
 	}
 }
 
-void visRing(uint8_t *frameBuffer, uint32_t frameBufferSize, int numLEDs)
+void visRing(uint8_t *frameBuffer, uint32_t frameBufferSize, int numRing, int numLEDs)
 {
 	uint32_t color = newColor(60,0,13);
 	for (int i = 0; i < ((frameBufferSize / 3) - (12 - numLEDs)); i++)
 	{
-		frameBuffer[i*3 + 0] = (uint8_t)(color & 0xFF);
-		frameBuffer[i*3 + 1] = (uint8_t)(color >> 8 & 0xFF);
-		frameBuffer[i*3 + 2] = (uint8_t)(color >> 16 & 0xFF);
+		frameBuffer[numRing * 12 + i*3 + 0] = (uint8_t)(color & 0xFF);
+		frameBuffer[numRing * 12 + i*3 + 1] = (uint8_t)(color >> 8 & 0xFF);
+		frameBuffer[numRing * 12 + i*3 + 2] = (uint8_t)(color >> 16 & 0xFF);
 	}
 }
 
@@ -123,7 +123,7 @@ void visHandle2()
 		// Animate next frame, each effect into each output RGB framebuffer
 		//visRainbow(frameBuffer, sizeof(frameBuffer), 15);
 		//visDots(frameBuffer, sizeof(frameBuffer), 70, 40);
-		visRing(frameBuffer, sizeof(frameBuffer), 10);
+		visRing(frameBuffer, sizeof(frameBuffer), 0, 10);
 	}
 }
 
@@ -181,4 +181,20 @@ void visHandle()
 	}
 }
 
+void updateRingLED(int numRing, int numLEDs)
+{
+	if (ws2812b.transferComplete)
+	{
+		static uint32_t timestamp;
+
+		if (HAL_GetTick() - timestamp > 10)
+		{
+			timestamp = HAL_GetTick();
+			memset(frameBuffer, 0, sizeof(frameBuffer));
+			visRing(frameBuffer, sizeof(frameBuffer), numRing, numLEDs);
+		}
+		ws2812b.startTransfer = 1;
+		ws2812b_handle();
+	}
+}
 

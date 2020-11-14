@@ -34,7 +34,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define NUM_PRESETS 6
+#define NUM_PRESETS 7
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -66,7 +66,8 @@ const char *presetBank[NUM_PRESETS] = {"Grand Piano",
 									   "Lead Synth",
 									   "Heavy 808",
 									   "Accordion",
-									   "DAC_Test"
+									   "DAC_Test",
+									   "LED_Test"
 										};
 /* USER CODE END PV */
 
@@ -111,11 +112,45 @@ void anticlockwise_menu_event()
 	updateMenuDisplay();
 }
 
-void reset_rtrenc1Flags()
+void reset_rtrencFlags()
 {
 	RTRENC_CCW_EVENT = 0;
 	RTRENC_CW_EVENT = 0;
 	RTRENC_PUSHB_EVENT = 0;
+}
+
+void LED_Test()
+{
+	lcd_showMessage("Welcome to the\rLED Test Mode!", huart4);
+	HAL_Delay(1000);
+	lcd_clear(huart4);
+
+	int numLEDS = 0;
+	char * buf[80];
+	sprintf(buf, "Rotate knob to\rchange number\rof LEDs.");
+	lcd_showMessage(buf, huart4);
+	while (1)
+	{
+		if (RTRENC_CW_EVENT)
+		{
+			numLEDS++;
+			if (numLEDS > 12)
+			{
+				numLEDS = 12;
+			}
+		}
+		else if (RTRENC_CCW_EVENT)
+		{
+			numLEDS--;
+			if (numLEDS < 0)
+			{
+				numLEDS = 0;
+			}
+		}
+		updateRingLED(0, numLEDS);
+		reset_rtrencFlags();
+		HAL_Delay(80);
+	}
 }
 
 void DAC_Test()
@@ -167,7 +202,7 @@ void DAC_Test()
 				DAC->DHR12R1 = dac_write;
 			HAL_DAC_Start(&hdac, DAC_CHANNEL_1);
 		}
-		reset_rtrenc1Flags();
+		reset_rtrencFlags();
 		HAL_Delay(150);
 	}
 }
@@ -216,32 +251,34 @@ int main(void)
   lcd_clear(huart4);
   updateMenuDisplay();
   visInit();
+
   while (1)
   {
-	  visHandle();
+	  //visHandle();
 
-	  if (DEMO_MODE == 0)
-	  	 {
+	  if (RTRENC_CW_EVENT)
+	  {
+	 	 clockwise_menu_event();
+	  }
+	  else if (RTRENC_CCW_EVENT)
+	  {
+	  	 anticlockwise_menu_event();
+	  }
+	  else if (CURRENT_PRESET == 6 && RTRENC_PUSHB_EVENT)
+	  {
+		 DAC_Test();
+	  }
+	  else if (CURRENT_PRESET == 7 && RTRENC_PUSHB_EVENT)
+	  {
+		  LED_Test();
+	  }
 
-	  		 if (RTRENC_CW_EVENT)
-	  		 {
-	  			 clockwise_menu_event();
-	  		 }
-	  		 else if (RTRENC_CCW_EVENT)
-	  		 {
-	  			 anticlockwise_menu_event();
-	  		 }
-	  		 else if (CURRENT_PRESET == 6 && RTRENC_PUSHB_EVENT)
-	  		 {
-	  			 DAC_Test();
-	  		 }
+	  reset_rtrencFlags();
 
-	  		 reset_rtrenc1Flags();
-	  	 }
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  HAL_Delay(120);
+	  HAL_Delay(125);
   }
   /* USER CODE END 3 */
 }
