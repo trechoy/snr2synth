@@ -238,6 +238,8 @@ void Demo_Mode(int preset)
 		{
 			flashLED(curParameter);
 			HAL_Delay(600);
+			flashLED(curParameter);
+			HAL_Delay(600);
 			for (int i = 1; i <= parameterVal; i++)
 			{
 				updateRingLED(curParameter, i);
