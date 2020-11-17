@@ -246,7 +246,7 @@ void Demo_Mode(int preset)
 				HAL_Delay(80);
 			}
 		}
-
+		reset_rtrencFlags();
 		while (!RTRENC_PUSHB_EVENT)
 		{
 			HAL_Delay(100);
@@ -264,6 +264,7 @@ void Demo_Mode(int preset)
 
 	sprintf(buf, "Parameters for\r%s\rhave been set!\rPush knob to return.");
 	lcd_showMessage(buf, huart4);
+	reset_rtrencFlags();
 	while (!RTRENC_PUSHB_EVENT)
 	{
 		HAL_Delay(100);
