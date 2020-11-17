@@ -1,5 +1,6 @@
 #include "stm32f4xx_hal.h"
 #include <string.h>
+#include <stdio.h>
 #include <unistd.h>
 
 void lcd_changeColor(char, UART_HandleTypeDef);

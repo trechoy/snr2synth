@@ -23,6 +23,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include <string.h>
+#include <stdio.h>
 #include "lcd.h"
 #include "visEffect.h"
 /* USER CODE END Includes */
@@ -49,6 +50,7 @@ DAC_HandleTypeDef hdac;
 TIM_HandleTypeDef htim1;
 
 UART_HandleTypeDef huart4;
+UART_HandleTypeDef huart5;
 
 /* USER CODE BEGIN PV */
 
@@ -94,6 +96,7 @@ static void MX_GPIO_Init(void);
 static void MX_UART4_Init(void);
 static void MX_DAC_Init(void);
 static void MX_TIM1_Init(void);
+static void MX_UART5_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -229,10 +232,18 @@ void Demo_Mode(int preset)
 	int preset_ind = preset - 1;
 	char * buf[80];
 
+	reset_rtrencFlags();
+	sprintf(buf, "Showing parameters\rfor %s\r\rPress knob to start.", parameterNames[preset_ind]);
+	while (!RTRENC_PUSHB_EVENT)
+	{
+		HAL_Delay(100);
+	}
+	reset_rtrencFlags();
+
 	for (int curParameter = 0; curParameter < NUM_PARAMETERS; curParameter++)
 	{
 		int parameterVal = parameterVals[preset_ind][curParameter];
-		sprintf(buf, "Set the\r%s\rknob to %d.\rPress knob to go on.", parameterNames[curParameter], parameterVal);
+		sprintf(buf, "Set the\r%s\rknob to %d.\rPress knob to go on.", parameterNames[preset_ind], parameterVal);
 		lcd_showMessage(buf, huart4);
 		if (parameterVal != 0)
 		{
@@ -246,6 +257,7 @@ void Demo_Mode(int preset)
 				HAL_Delay(80);
 			}
 		}
+
 		reset_rtrencFlags();
 		while (!RTRENC_PUSHB_EVENT)
 		{
@@ -305,6 +317,7 @@ int main(void)
   MX_UART4_Init();
   MX_DAC_Init();
   MX_TIM1_Init();
+  MX_UART5_Init();
   /* USER CODE BEGIN 2 */
   HAL_Delay(800);
   lcd_changeColor('w', huart4);
@@ -316,6 +329,7 @@ int main(void)
   lcd_clear(huart4);
   updateMenuDisplay();
   visInit();
+  clearLEDs();
 
   while (1)
   {
@@ -533,7 +547,7 @@ static void MX_UART4_Init(void)
   huart4.Init.WordLength = UART_WORDLENGTH_8B;
   huart4.Init.StopBits = UART_STOPBITS_1;
   huart4.Init.Parity = UART_PARITY_NONE;
-  huart4.Init.Mode = UART_MODE_TX_RX;
+  huart4.Init.Mode = UART_MODE_TX;
   huart4.Init.HwFlowCtl = UART_HWCONTROL_NONE;
   huart4.Init.OverSampling = UART_OVERSAMPLING_16;
   if (HAL_UART_Init(&huart4) != HAL_OK)
@@ -543,6 +557,39 @@ static void MX_UART4_Init(void)
   /* USER CODE BEGIN UART4_Init 2 */
 
   /* USER CODE END UART4_Init 2 */
+
+}
+
+/**
+  * @brief UART5 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_UART5_Init(void)
+{
+
+  /* USER CODE BEGIN UART5_Init 0 */
+
+  /* USER CODE END UART5_Init 0 */
+
+  /* USER CODE BEGIN UART5_Init 1 */
+
+  /* USER CODE END UART5_Init 1 */
+  huart5.Instance = UART5;
+  huart5.Init.BaudRate = 31250;
+  huart5.Init.WordLength = UART_WORDLENGTH_8B;
+  huart5.Init.StopBits = UART_STOPBITS_1;
+  huart5.Init.Parity = UART_PARITY_NONE;
+  huart5.Init.Mode = UART_MODE_RX;
+  huart5.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart5.Init.OverSampling = UART_OVERSAMPLING_16;
+  if (HAL_UART_Init(&huart5) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN UART5_Init 2 */
+
+  /* USER CODE END UART5_Init 2 */
 
 }
 
@@ -608,13 +655,13 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_Init(USB_OverCurrent_GPIO_Port, &GPIO_InitStruct);
 
   /* EXTI interrupt init*/
-  HAL_NVIC_SetPriority(EXTI3_IRQn, 0, 0);
+  HAL_NVIC_SetPriority(EXTI3_IRQn, 2, 0);
   HAL_NVIC_EnableIRQ(EXTI3_IRQn);
 
-  HAL_NVIC_SetPriority(EXTI4_IRQn, 0, 0);
+  HAL_NVIC_SetPriority(EXTI4_IRQn, 2, 0);
   HAL_NVIC_EnableIRQ(EXTI4_IRQn);
 
-  HAL_NVIC_SetPriority(EXTI9_5_IRQn, 0, 0);
+  HAL_NVIC_SetPriority(EXTI9_5_IRQn, 2, 0);
   HAL_NVIC_EnableIRQ(EXTI9_5_IRQn);
 
 }
