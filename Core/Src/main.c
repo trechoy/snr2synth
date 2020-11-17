@@ -256,6 +256,7 @@ void Demo_Mode(int preset)
 				HAL_Delay(500);
 			}
 		}
+		reset_rtrencFlags();
 		clearLEDs();
 	}
 
@@ -267,6 +268,7 @@ void Demo_Mode(int preset)
 	{
 		HAL_Delay(100);
 	}
+	reset_rtrencFlags();
 }
 
 /* USER CODE END 0 */
