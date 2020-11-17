@@ -76,6 +76,28 @@ void visRing(uint8_t *frameBuffer, uint32_t frameBufferSize, int numRing, int nu
 	}
 }
 
+void visFlashOn(uint8_t *frameBuffer, uint32_t frameBufferSize, int numRing)
+{
+	uint32_t color = newColor(0, 60, 10);
+	for (int i = 12 * numRing; i < ((frameBufferSize / 3) + (numRing * 12)); i++)
+	{
+		frameBuffer[i*3 + 0] = (uint8_t)(color & 0xFF);
+		frameBuffer[i*3 + 1] = (uint8_t)(color >> 8 & 0xFF);
+		frameBuffer[i*3 + 2] = (uint8_t)(color >> 16 & 0xFF);
+	}
+}
+
+void visFlashOff(uint8_t *frameBuffer, uint32_t frameBufferSize, int numRing)
+{
+	uint32_t color = newColor(0, 0, 0);
+	for (int i = 12 * numRing; i < ((frameBufferSize / 3) + (numRing * 12)); i++)
+	{
+		frameBuffer[i*3 + 0] = (uint8_t)(color & 0xFF);
+		frameBuffer[i*3 + 1] = (uint8_t)(color >> 8 & 0xFF);
+		frameBuffer[i*3 + 2] = (uint8_t)(color >> 16 & 0xFF);
+	}
+}
+
 
 void visDots(uint8_t *frameBuffer, uint32_t frameBufferSize, uint32_t random, uint32_t fadeOutFactor)
 {
@@ -192,6 +214,41 @@ void updateRingLED(int numRing, int numLEDs)
 			timestamp = HAL_GetTick();
 			memset(frameBuffer, 0, sizeof(frameBuffer));
 			visRing(frameBuffer, sizeof(frameBuffer), numRing, numLEDs);
+		}
+		ws2812b.startTransfer = 1;
+		ws2812b_handle();
+	}
+}
+
+void flashLED(int numRing)
+{
+	if (ws2812b.transferComplete)
+	{
+		static uint32_t timestamp;
+
+		if (HAL_GetTick() - timestamp > 10)
+		{
+			timestamp = HAL_GetTick();
+			memset(frameBuffer, 0, sizeof(frameBuffer));
+			visFlashOn(frameBuffer, sizeof(frameBuffer), numRing);
+		}
+		ws2812b.startTransfer = 1;
+		ws2812b_handle();
+	}
+	HAL_Delay(600);
+	clearLEDs();
+}
+
+void clearLEDs()
+{
+	if (ws2812b.transferComplete)
+	{
+		static uint32_t timestamp;
+
+		if (HAL_GetTick() - timestamp > 10)
+		{
+			timestamp = HAL_GetTick();
+			memset(frameBuffer, 0, sizeof(frameBuffer));
 		}
 		ws2812b.startTransfer = 1;
 		ws2812b_handle();

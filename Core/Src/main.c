@@ -35,6 +35,7 @@
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 #define NUM_PRESETS 7
+#define NUM_PARAMETERS 5
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -69,6 +70,22 @@ const char *presetBank[NUM_PRESETS] = {"Grand Piano",
 									   "DAC_Test",
 									   "LED_Test"
 										};
+
+const char parameterVals [NUM_PRESETS - 2][NUM_PARAMETERS] = {
+ {1, 2, 3, 4, 5},
+ {6, 7, 8, 9, 10},
+ {1, 3, 5, 7, 9},
+ {2, 4, 6, 8, 10},
+ {0, 10, 5, 2, 7}
+};
+
+const char *parameterNames[NUM_PARAMETERS] = {"VCO 1 Frequency",
+											  "VCO 1 Volume",
+											  "VCO 2 Frequency",
+											  "VCO 2 Volume",
+											  "LFO Frequency"
+};
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -207,6 +224,49 @@ void DAC_Test()
 	}
 }
 
+void Demo_Mode(int preset)
+{
+	int preset_ind = preset - 1;
+	char * buf[80];
+
+	for (int curParameter = 0; curParameter < NUM_PARAMETERS; curParameter++)
+	{
+		int parameterVal = parameterVals[preset_ind][curParameter];
+		sprintf(buf, "Set the\r%s\rknob to %d.\rPress knob to go on.", parameterNames[curParameter], parameterVal);
+		lcd_showMessage(buf, huart4);
+		if (parameterVal != 0)
+		{
+			flashLED(curParameter);
+			HAL_Delay(600);
+			for (int i = 1; i <= parameterVal; i++)
+			{
+				updateRingLED(curParameter, i);
+				HAL_Delay(80);
+			}
+		}
+
+		while (!RTRENC_PUSHB_EVENT)
+		{
+			HAL_Delay(100);
+			if (parameterVal == 0)
+			{
+				flashLED(curParameter);
+				HAL_Delay(500);
+			}
+		}
+		clearLEDs();
+	}
+
+	//probably some specific stuff for the waveform generators
+
+	sprintf(buf, "Parameters for\r%s\rhave been set!\rPush knob to return.");
+	lcd_showMessage(buf, huart4);
+	while (!RTRENC_PUSHB_EVENT)
+	{
+		HAL_Delay(100);
+	}
+}
+
 /* USER CODE END 0 */
 
 /**
@@ -254,8 +314,6 @@ int main(void)
 
   while (1)
   {
-	  //visHandle();
-
 	  if (RTRENC_CW_EVENT)
 	  {
 	 	 clockwise_menu_event();
@@ -271,6 +329,11 @@ int main(void)
 	  else if (CURRENT_PRESET == 7 && RTRENC_PUSHB_EVENT)
 	  {
 		  LED_Test();
+	  }
+	  else if (RTRENC_PUSHB_EVENT)
+	  {
+		  //demo mode bb
+		  Demo_Mode(CURRENT_PRESET);
 	  }
 
 	  reset_rtrencFlags();
