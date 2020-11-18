@@ -19,7 +19,7 @@
 #include <stdlib.h>
 
 // RGB Framebuffers
-uint8_t frameBuffer[3*12];
+uint8_t frameBuffer[3 * 12 * 5];
 //uint8_t frameBuffer2[3*20];
 
 // Helper defines
@@ -68,18 +68,18 @@ void visRainbow(uint8_t *frameBuffer, uint32_t frameBufferSize, uint32_t effectL
 void visRing(uint8_t *frameBuffer, uint32_t frameBufferSize, int numRing, int numLEDs)
 {
 	uint32_t color = newColor(60,0,13);
-	for (int i = 0; i < ((frameBufferSize / 3) - (12 - numLEDs)); i++)
+	for (int i = 12 * numRing; i < (12 * numRing) + numLEDs; i++)
 	{
-		frameBuffer[numRing * 12 + i*3 + 0] = (uint8_t)(color & 0xFF);
-		frameBuffer[numRing * 12 + i*3 + 1] = (uint8_t)(color >> 8 & 0xFF);
-		frameBuffer[numRing * 12 + i*3 + 2] = (uint8_t)(color >> 16 & 0xFF);
+		frameBuffer[i*3 + 0] = (uint8_t)(color & 0xFF);
+		frameBuffer[i*3 + 1] = (uint8_t)(color >> 8 & 0xFF);
+		frameBuffer[i*3 + 2] = (uint8_t)(color >> 16 & 0xFF);
 	}
 }
 
 void visFlashOn(uint8_t *frameBuffer, uint32_t frameBufferSize, int numRing)
 {
 	uint32_t color = newColor(0, 60, 10);
-	for (int i = 12 * numRing; i < ((frameBufferSize / 3) + (numRing * 12)); i++)
+	for (int i = 12 * numRing; i < (12 * numRing) + 12; i++)
 	{
 		frameBuffer[i*3 + 0] = (uint8_t)(color & 0xFF);
 		frameBuffer[i*3 + 1] = (uint8_t)(color >> 8 & 0xFF);
@@ -90,7 +90,7 @@ void visFlashOn(uint8_t *frameBuffer, uint32_t frameBufferSize, int numRing)
 void visFlashOff(uint8_t *frameBuffer, uint32_t frameBufferSize, int numRing)
 {
 	uint32_t color = newColor(0, 0, 0);
-	for (int i = 12 * numRing; i < ((frameBufferSize / 3) + (numRing * 12)); i++)
+	for (int i = 12 * numRing; i < (12 * numRing) + 12; i++)
 	{
 		frameBuffer[i*3 + 0] = (uint8_t)(color & 0xFF);
 		frameBuffer[i*3 + 1] = (uint8_t)(color >> 8 & 0xFF);
@@ -239,6 +239,17 @@ void flashLED(int numRing)
 	clearLEDs();
 }
 
+void clearAll(uint8_t *frameBuffer, uint32_t frameBufferSize)
+{
+	uint32_t color = newColor(0, 0, 0);
+	for (int i = 0; i < frameBufferSize / 3; i++)
+	{
+		frameBuffer[i*3 + 0] = (uint8_t)(color & 0xFF);
+		frameBuffer[i*3 + 1] = (uint8_t)(color >> 8 & 0xFF);
+		frameBuffer[i*3 + 2] = (uint8_t)(color >> 16 & 0xFF);
+	}
+}
+
 void clearLEDs()
 {
 	if (ws2812b.transferComplete)
@@ -249,9 +260,11 @@ void clearLEDs()
 		{
 			timestamp = HAL_GetTick();
 			memset(frameBuffer, 0, sizeof(frameBuffer));
+			clearAll(frameBuffer, sizeof(frameBuffer));
 		}
 		ws2812b.startTransfer = 1;
 		ws2812b_handle();
 	}
+
 }
 

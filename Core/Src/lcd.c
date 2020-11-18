@@ -41,7 +41,7 @@ void lcd_clear(UART_HandleTypeDef huart)
 void lcd_showMessage(char * msg, UART_HandleTypeDef huart)
 {
 	lcd_clear(huart);
-	HAL_UART_Transmit(&huart, (uint8_t *) msg , strlen(msg), 50);
+	HAL_UART_Transmit(&huart, (uint8_t *) msg , strlen(msg), 80);
 }
 
 void lcd_appendMessage(char * msg, UART_HandleTypeDef huart)

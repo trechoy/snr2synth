@@ -106,7 +106,7 @@ static void MX_UART5_Init(void);
 
 void updateMenuDisplay()
 {
-	char * buf[80];
+	char * buf[80] = {0};;
 	sprintf(buf, "#%d\r%s\r\rPush knob to select.", CURRENT_PRESET, presetBank[CURRENT_PRESET - 1]);
 	lcd_showMessage(buf, huart4);
 
@@ -146,7 +146,7 @@ void LED_Test()
 	lcd_clear(huart4);
 
 	int numLEDS = 0;
-	char * buf[80];
+	char * buf[80] = {0};
 	sprintf(buf, "Rotate knob to\rchange number\rof LEDs.");
 	lcd_showMessage(buf, huart4);
 	while (1)
@@ -183,7 +183,7 @@ void DAC_Test()
 
 	double dac_vout = 0;
 	int dac_write = 0;
-	char * buf[80];
+	char * buf[80] = {0};
 	sprintf(buf, "DAC V_out: %.2fV\r\rRotate knob to\radjust voltage.", dac_vout);
 	lcd_showMessage(buf, huart4);
 	while (1)
@@ -230,10 +230,11 @@ void DAC_Test()
 void Demo_Mode(int preset)
 {
 	int preset_ind = preset - 1;
-	char * buf[80];
+	char * buf[80] = {0};
 
 	reset_rtrencFlags();
-	sprintf(buf, "Showing parameters\rfor %s\r\rPress knob to start.", parameterNames[preset_ind]);
+	sprintf(buf, "Showing parameters\rfor %s\r\rPress knob to start.", presetBank[preset_ind]);
+	lcd_showMessage(buf, huart4);
 	while (!RTRENC_PUSHB_EVENT)
 	{
 		HAL_Delay(100);
@@ -243,7 +244,7 @@ void Demo_Mode(int preset)
 	for (int curParameter = 0; curParameter < NUM_PARAMETERS; curParameter++)
 	{
 		int parameterVal = parameterVals[preset_ind][curParameter];
-		sprintf(buf, "Set the\r%s\rknob to %d.\rPress knob to go on.", parameterNames[preset_ind], parameterVal);
+		sprintf(buf, "Set the\r%s\rknob to %d.\rPress knob to go on.", parameterNames[curParameter], parameterVal);
 		lcd_showMessage(buf, huart4);
 		if (parameterVal != 0)
 		{
@@ -274,7 +275,7 @@ void Demo_Mode(int preset)
 
 	//probably some specific stuff for the waveform generators
 
-	sprintf(buf, "Parameters for\r%s\rhave been set!\rPush knob to return.");
+	sprintf(buf, "Parameters for\r%s\rhave been set!\rPush knob to return.", presetBank[preset_ind]);
 	lcd_showMessage(buf, huart4);
 	reset_rtrencFlags();
 	while (!RTRENC_PUSHB_EVENT)
@@ -330,6 +331,8 @@ int main(void)
   updateMenuDisplay();
   visInit();
   clearLEDs();
+  HAL_Delay(150);
+  updateRingLED(0, 0);
 
   while (1)
   {
@@ -353,6 +356,7 @@ int main(void)
 	  {
 		  //demo mode bb
 		  Demo_Mode(CURRENT_PRESET);
+		  updateMenuDisplay();
 	  }
 
 	  reset_rtrencFlags();
@@ -547,7 +551,7 @@ static void MX_UART4_Init(void)
   huart4.Init.WordLength = UART_WORDLENGTH_8B;
   huart4.Init.StopBits = UART_STOPBITS_1;
   huart4.Init.Parity = UART_PARITY_NONE;
-  huart4.Init.Mode = UART_MODE_TX;
+  huart4.Init.Mode = UART_MODE_TX_RX;
   huart4.Init.HwFlowCtl = UART_HWCONTROL_NONE;
   huart4.Init.OverSampling = UART_OVERSAMPLING_16;
   if (HAL_UART_Init(&huart4) != HAL_OK)
@@ -655,13 +659,13 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_Init(USB_OverCurrent_GPIO_Port, &GPIO_InitStruct);
 
   /* EXTI interrupt init*/
-  HAL_NVIC_SetPriority(EXTI3_IRQn, 2, 0);
+  HAL_NVIC_SetPriority(EXTI3_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(EXTI3_IRQn);
 
-  HAL_NVIC_SetPriority(EXTI4_IRQn, 2, 0);
+  HAL_NVIC_SetPriority(EXTI4_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(EXTI4_IRQn);
 
-  HAL_NVIC_SetPriority(EXTI9_5_IRQn, 2, 0);
+  HAL_NVIC_SetPriority(EXTI9_5_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(EXTI9_5_IRQn);
 
 }

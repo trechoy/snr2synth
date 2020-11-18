@@ -9,4 +9,5 @@ visEffect.c:153:6:visInit	16	static
 visEffect.c:192:6:visHandle	8	static
 visEffect.c:206:6:updateRingLED	16	static
 visEffect.c:223:6:flashLED	16	static
-visEffect.c:242:6:clearLEDs	8	static
+visEffect.c:242:6:clearAll	24	static
+visEffect.c:253:6:clearLEDs	8	static
