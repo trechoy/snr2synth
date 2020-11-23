@@ -26,6 +26,7 @@
 #include <stdio.h>
 #include "lcd.h"
 #include "visEffect.h"
+#include <math.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -58,10 +59,15 @@ UART_HandleTypeDef huart5;
 int RTRENC_CCW_EVENT = 0;
 int RTRENC_CW_EVENT = 0;
 int RTRENC_PUSHB_EVENT = 0;
-int DEMO_MODE = 0;
+int MIDI_MESSAGE_RECEIVED_EVENT = 0;
+int MIDI_CHECK_VELOCITY_FLAG = 0;
 
 /* GLOBAL VARIABLES */
 int CURRENT_PRESET = 1;
+char MIDI_input = 0;
+char MIDI_temp = 0;
+unsigned int MIDI_current_note = 0;
+int keysPressed = 0;
 
 /* PRESET VALUES */
 const char *presetBank[NUM_PRESETS] = {"Grand Piano",
@@ -73,7 +79,7 @@ const char *presetBank[NUM_PRESETS] = {"Grand Piano",
 									   "LED_Test"
 										};
 
-const char parameterVals [NUM_PRESETS - 2][NUM_PARAMETERS] = {
+const unsigned char parameterVals [NUM_PRESETS - 2][NUM_PARAMETERS] = {
  {1, 2, 3, 4, 5},
  {6, 7, 8, 9, 10},
  {1, 3, 5, 7, 9},
@@ -285,6 +291,54 @@ void Demo_Mode(int preset)
 	reset_rtrencFlags();
 }
 
+void updateDAC()
+{
+	if (MIDI_current_note == 0 || MIDI_current_note < 5 || MIDI_current_note > 76)
+	{
+		DAC->DHR12R1 = 0;
+		//set gate low
+	}
+	else
+	{
+		DAC->DHR12R1 = (int) (0.00039 * pow(MIDI_current_note, 4)) - (0.03641 * pow(MIDI_current_note, 3)) + (1.32121 * pow(MIDI_current_note, 2)) - (9.4721 * MIDI_current_note) + 34.89;
+		//set gate hi
+	}
+}
+
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+	if (MIDI_input == 0xFE)
+	{
+
+	}
+	else if (MIDI_input == 0x90)
+	{
+		MIDI_MESSAGE_RECEIVED_EVENT = 1;
+	}
+	else if (MIDI_CHECK_VELOCITY_FLAG)
+	{
+		if (!MIDI_input && (MIDI_temp == MIDI_current_note))
+		{
+			MIDI_current_note = 0;
+		}
+		MIDI_CHECK_VELOCITY_FLAG = 0;
+		MIDI_MESSAGE_RECEIVED_EVENT = 0;
+		//change DAC routine
+		updateDAC();
+	}
+	else if (MIDI_MESSAGE_RECEIVED_EVENT)
+	{
+		MIDI_temp = MIDI_input;
+		if (!MIDI_current_note)
+		{
+			MIDI_current_note = MIDI_input;
+		}
+		MIDI_CHECK_VELOCITY_FLAG = 1;
+	}
+
+	HAL_UART_Receive_IT(&huart5, &MIDI_input, 1);
+}
+
 /* USER CODE END 0 */
 
 /**
@@ -333,6 +387,9 @@ int main(void)
   clearLEDs();
   HAL_Delay(150);
   updateRingLED(0, 0);
+  HAL_DAC_Start(&hdac, DAC_CHANNEL_1);
+  DAC->DHR12R1=0;
+  HAL_UART_Receive_IT(&huart5, &MIDI_input, 1);
 
   while (1)
   {
