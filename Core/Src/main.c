@@ -80,12 +80,12 @@ const char *presetBank[NUM_PRESETS] = {"Grand Piano",
 									   "LED_Test"
 										};
 
-const char parameterVals [NUM_PRESETS - 2][NUM_PARAMETERS] = {
- {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 0},
- {6, 7, 8, 9, 10, 0, 1, 2, 3, 4, 5},
- {1, 3, 5, 7, 9, 0, 2, 4, 6, 8, 10},
- {0, 2, 4, 6, 8, 10, 1, 3, 5, 7, 9},
- {3, 10, 5, 2, 7, 4, 1, 6, 0, 9, 8}
+const char parameterVals [NUM_PRESETS - 2][NUM_PARAMETERS + 5] = {
+ {0, 1, 2, 2, 2, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 0},
+ {0, 1, 2, 2, 2, 6, 7, 8, 9, 10, 0, 1, 2, 3, 4, 5},
+ {0, 1, 2, 2, 2, 1, 3, 5, 7, 9, 0, 2, 4, 6, 8, 10},
+ {0, 1, 2, 2, 2, 0, 2, 4, 6, 8, 10, 1, 3, 5, 7, 9},
+ {0, 1, 2, 2, 2, 3, 10, 5, 2, 7, 4, 1, 6, 0, 9, 8}
 };
 
 const char *parameterNames[NUM_PARAMETERS] = {"VCO 1 Frequency",
@@ -244,17 +244,120 @@ void Demo_Mode(int preset)
 {
 	int preset_ind = preset - 1;
 	char * buf[80] = {0};
+	char * switch_setting = NULL;
 
 	reset_rtrencFlags();
 	sprintf(buf, "Showing parameters\rfor %s\r\rPress knob to start.", presetBank[preset_ind]);
 	lcd_showMessage(buf, huart4);
 	while (!RTRENC_PUSHB_EVENT)
 	{
-		HAL_Delay(100);
+		HAL_Delay(70);
 	}
 	reset_rtrencFlags();
 
-	for (int curParameter = 0; curParameter < NUM_PARAMETERS; curParameter++)
+	//step 1: octave switcher
+
+	//step 2: switch LED for vco1
+	switch (parameterVals[preset_ind][1])
+	{
+		case 1:
+			switch_setting = "SAWTOOTH";
+			break;
+		case 2:
+			switch_setting = "SQUARE";
+			break;
+		case 3:
+			switch_setting = "TRIANGLE";
+			break;
+		default:
+			switch_setting = "ERROR";
+	}
+	sprintf(buf, "Set the VCO 1\rWaveform switch to\routput a %s.\rPress knob to go on.", switch_setting);
+	lcd_showMessage(buf, huart4);
+	HAL_GPIO_WritePin(LD_SW_VCO1_GPIO_Port, LD_SW_VCO1_Pin, 1);
+	reset_rtrencFlags();
+	while (!RTRENC_PUSHB_EVENT)
+	{
+		HAL_Delay(70);
+	}
+	reset_rtrencFlags();
+	HAL_GPIO_WritePin(LD_SW_VCO1_GPIO_Port, LD_SW_VCO1_Pin, 0);
+
+	//step 3: switch LED for vco2
+	switch (parameterVals[preset_ind][2])
+	{
+		case 1:
+			switch_setting = "SAWTOOTH";
+			break;
+		case 2:
+			switch_setting = "SQUARE";
+			break;
+		case 3:
+			switch_setting = "TRIANGLE";
+			break;
+		default:
+			switch_setting = "ERROR";
+	}
+	sprintf(buf, "Set the VCO 2\rWaveform switch to\routput a %s.\rPress knob to go on.", switch_setting);
+	lcd_showMessage(buf, huart4);
+	HAL_GPIO_WritePin(LD_SW_VCO2_GPIO_Port, LD_SW_VCO2_Pin, 1);
+	reset_rtrencFlags();
+	while (!RTRENC_PUSHB_EVENT)
+	{
+		HAL_Delay(70);
+	}
+	reset_rtrencFlags();
+	HAL_GPIO_WritePin(LD_SW_VCO2_GPIO_Port, LD_SW_VCO2_Pin, 0);
+
+	//step 4: switch LED for lfo waveform
+	switch (parameterVals[preset_ind][3])
+	{
+		case 1:
+			switch_setting = "SQUARE";
+			break;
+		case 2:
+			switch_setting = "TRIANGLE";
+			break;
+		default:
+			switch_setting = "ERROR";
+	}
+	sprintf(buf, "Set the LFO\rWaveform switch to\routput a %s.\rPress knob to go on.", switch_setting);
+	lcd_showMessage(buf, huart4);
+	HAL_GPIO_WritePin(LD_SW_LFO_WV_GPIO_Port, LD_SW_LFO_WV_Pin, 1);
+	reset_rtrencFlags();
+	while (!RTRENC_PUSHB_EVENT)
+	{
+		HAL_Delay(70);
+	}
+	reset_rtrencFlags();
+	HAL_GPIO_WritePin(LD_SW_LFO_WV_GPIO_Port, LD_SW_LFO_WV_Pin, 0);
+
+	//step 5: switch LED for lfo target
+	switch (parameterVals[preset_ind][4])
+	{
+		case 1:
+			switch_setting = "LFO";
+			break;
+		case 2:
+			switch_setting = "VCO";
+			break;
+		default:
+			switch_setting = "ERROR";
+	}
+	sprintf(buf, "Set the Target\rswitch to %s.\r\rPress knob to go on.", switch_setting);
+	lcd_showMessage(buf, huart4);
+	HAL_GPIO_WritePin(LD_SW_LFO_TRGT_GPIO_Port, LD_SW_LFO_TRGT_Pin, 1);
+	reset_rtrencFlags();
+	while (!RTRENC_PUSHB_EVENT)
+	{
+		HAL_Delay(70);
+	}
+	reset_rtrencFlags();
+	HAL_GPIO_WritePin(LD_SW_LFO_TRGT_GPIO_Port, LD_SW_LFO_TRGT_Pin, 0);
+
+	//step 6: all the mf neopixels
+
+	for (int curParameter = 5; curParameter < NUM_PARAMETERS + 5; curParameter++)
 	{
 		int parameterVal = parameterVals[preset_ind][curParameter];
 		sprintf(buf, "Set the\r%s\rknob to %d.\rPress knob to go on.", parameterNames[curParameter], parameterVal);
@@ -275,25 +378,24 @@ void Demo_Mode(int preset)
 		reset_rtrencFlags();
 		while (!RTRENC_PUSHB_EVENT)
 		{
-			HAL_Delay(100);
+			HAL_Delay(70);
 			if (parameterVal == 0)
 			{
 				flashLED(curParameter);
-				HAL_Delay(500);
+				HAL_Delay(530);
 			}
 		}
 		reset_rtrencFlags();
 		clearLEDs();
 	}
 
-	//probably some specific stuff for the waveform generators
-
+	//step 7: ta-da
 	sprintf(buf, "Parameters for\r%s\rhave been set!\rPush knob to return.", presetBank[preset_ind]);
 	lcd_showMessage(buf, huart4);
 	reset_rtrencFlags();
 	while (!RTRENC_PUSHB_EVENT)
 	{
-		HAL_Delay(100);
+		HAL_Delay(70);
 	}
 	reset_rtrencFlags();
 }
@@ -304,11 +406,13 @@ void updateDAC()
 	{
 		DAC->DHR12R1 = 0;
 		//set gate low
+		HAL_GPIO_WritePin(DAC_GATE_GPIO_Port, DAC_GATE_Pin, 0);
 	}
 	else
 	{
 		DAC->DHR12R1 = (int) (0.00039 * pow(MIDI_current_note, 4)) - (0.03641 * pow(MIDI_current_note, 3)) + (1.32121 * pow(MIDI_current_note, 2)) - (9.4721 * MIDI_current_note) + 34.89;
 		//set gate hi
+		HAL_GPIO_WritePin(DAC_GATE_GPIO_Port, DAC_GATE_Pin, 1);
 	}
 }
 
@@ -428,7 +532,7 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  HAL_Delay(125);
+	  HAL_Delay(80);
   }
   /* USER CODE END 3 */
 }
@@ -681,7 +785,7 @@ static void MX_GPIO_Init(void)
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOF, LD_OCTAVE_DOWN_Pin|LD_OCTAVE_UP_Pin|LD_SW_LFO_WV_Pin|LD_SW_VCO1_Pin
-                          |LD_SW_VCO2_Pin|LD_SW_LFO_TRGT_Pin, GPIO_PIN_SET);
+                          |LD_SW_VCO2_Pin|LD_SW_LFO_TRGT_Pin|DAC_GATE_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, LD1_Pin|LD3_Pin|LD2_Pin, GPIO_PIN_RESET);
@@ -704,11 +808,11 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOF, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : RTRENC_PSH_Pin */
-  GPIO_InitStruct.Pin = RTRENC_PSH_Pin;
+  /*Configure GPIO pins : OCTAVE_DOWN_PUSHB_Pin OCTAVE_DOWN_PUSHBC2_Pin RTRENC_PSH_Pin */
+  GPIO_InitStruct.Pin = OCTAVE_DOWN_PUSHB_Pin|OCTAVE_DOWN_PUSHBC2_Pin|RTRENC_PSH_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
   GPIO_InitStruct.Pull = GPIO_PULLUP;
-  HAL_GPIO_Init(RTRENC_PSH_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
   /*Configure GPIO pins : RTRENC_A_Pin RTRENC_B_Pin */
   GPIO_InitStruct.Pin = RTRENC_A_Pin|RTRENC_B_Pin;
@@ -722,6 +826,13 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : DAC_GATE_Pin */
+  GPIO_InitStruct.Pin = DAC_GATE_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+  HAL_GPIO_Init(DAC_GATE_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : USB_PowerSwitchOn_Pin */
   GPIO_InitStruct.Pin = USB_PowerSwitchOn_Pin;
