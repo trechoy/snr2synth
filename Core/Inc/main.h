@@ -64,6 +64,18 @@ void Error_Handler(void);
 /* Private defines -----------------------------------------------------------*/
 #define USER_Btn_Pin GPIO_PIN_13
 #define USER_Btn_GPIO_Port GPIOC
+#define LD_OCTAVE_DOWN_Pin GPIO_PIN_0
+#define LD_OCTAVE_DOWN_GPIO_Port GPIOF
+#define LD_OCTAVE_UP_Pin GPIO_PIN_1
+#define LD_OCTAVE_UP_GPIO_Port GPIOF
+#define LD_SW_LFO_WV_Pin GPIO_PIN_2
+#define LD_SW_LFO_WV_GPIO_Port GPIOF
+#define LD_SW_VCO1_Pin GPIO_PIN_7
+#define LD_SW_VCO1_GPIO_Port GPIOF
+#define LD_SW_VCO2_Pin GPIO_PIN_8
+#define LD_SW_VCO2_GPIO_Port GPIOF
+#define LD_SW_LFO_TRGT_Pin GPIO_PIN_9
+#define LD_SW_LFO_TRGT_GPIO_Port GPIOF
 #define RTRENC_PSH_Pin GPIO_PIN_3
 #define RTRENC_PSH_GPIO_Port GPIOC
 #define RTRENC_PSH_EXTI_IRQn EXTI3_IRQn

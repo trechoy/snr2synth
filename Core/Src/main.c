@@ -37,7 +37,7 @@
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 #define NUM_PRESETS 7
-#define NUM_PARAMETERS 5
+#define NUM_PARAMETERS 11
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -67,7 +67,8 @@ int CURRENT_PRESET = 1;
 char MIDI_input = 0;
 char MIDI_temp = 0;
 unsigned int MIDI_current_note = 0;
-int keysPressed = 0;
+int MIDI_octave_offset = 0;
+
 
 /* PRESET VALUES */
 const char *presetBank[NUM_PRESETS] = {"Grand Piano",
@@ -79,19 +80,25 @@ const char *presetBank[NUM_PRESETS] = {"Grand Piano",
 									   "LED_Test"
 										};
 
-const unsigned char parameterVals [NUM_PRESETS - 2][NUM_PARAMETERS] = {
- {1, 2, 3, 4, 5},
- {6, 7, 8, 9, 10},
- {1, 3, 5, 7, 9},
- {2, 4, 6, 8, 10},
- {0, 10, 5, 2, 7}
+const char parameterVals [NUM_PRESETS - 2][NUM_PARAMETERS] = {
+ {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 0},
+ {6, 7, 8, 9, 10, 0, 1, 2, 3, 4, 5},
+ {1, 3, 5, 7, 9, 0, 2, 4, 6, 8, 10},
+ {0, 2, 4, 6, 8, 10, 1, 3, 5, 7, 9},
+ {3, 10, 5, 2, 7, 4, 1, 6, 0, 9, 8}
 };
 
 const char *parameterNames[NUM_PARAMETERS] = {"VCO 1 Frequency",
 											  "VCO 1 Volume",
 											  "VCO 2 Frequency",
 											  "VCO 2 Volume",
-											  "LFO Frequency"
+											  "LFO Frequency",
+											  "LFO Volume",
+											  "Filter Cutoff",
+											  "Attack",
+											  "Decay",
+											  "Sustain",
+											  "Release"
 };
 
 /* USER CODE END PV */
@@ -665,11 +672,16 @@ static void MX_GPIO_Init(void)
 
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOC_CLK_ENABLE();
+  __HAL_RCC_GPIOF_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
   __HAL_RCC_GPIOE_CLK_ENABLE();
   __HAL_RCC_GPIOG_CLK_ENABLE();
   __HAL_RCC_GPIOD_CLK_ENABLE();
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOF, LD_OCTAVE_DOWN_Pin|LD_OCTAVE_UP_Pin|LD_SW_LFO_WV_Pin|LD_SW_VCO1_Pin
+                          |LD_SW_VCO2_Pin|LD_SW_LFO_TRGT_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, LD1_Pin|LD3_Pin|LD2_Pin, GPIO_PIN_RESET);
@@ -682,6 +694,15 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(USER_Btn_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : LD_OCTAVE_DOWN_Pin LD_OCTAVE_UP_Pin LD_SW_LFO_WV_Pin LD_SW_VCO1_Pin
+                           LD_SW_VCO2_Pin LD_SW_LFO_TRGT_Pin */
+  GPIO_InitStruct.Pin = LD_OCTAVE_DOWN_Pin|LD_OCTAVE_UP_Pin|LD_SW_LFO_WV_Pin|LD_SW_VCO1_Pin
+                          |LD_SW_VCO2_Pin|LD_SW_LFO_TRGT_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOF, &GPIO_InitStruct);
 
   /*Configure GPIO pin : RTRENC_PSH_Pin */
   GPIO_InitStruct.Pin = RTRENC_PSH_Pin;

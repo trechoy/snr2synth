@@ -19,7 +19,7 @@
 #include <stdlib.h>
 
 // RGB Framebuffers
-uint8_t frameBuffer[3 * 12 * 5];
+uint8_t frameBuffer[3 * 12 * 11];
 //uint8_t frameBuffer2[3*20];
 
 // Helper defines
