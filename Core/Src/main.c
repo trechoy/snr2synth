@@ -405,9 +405,9 @@ void Demo_Mode(int preset)
 
 	//step 6: all the mf neopixels
 
-	for (int curParameter = 5; curParameter < NUM_PARAMETERS + 5; curParameter++)
+	for (int curParameter = 0; curParameter < NUM_PARAMETERS; curParameter++)
 	{
-		int parameterVal = parameterVals[preset_ind][curParameter];
+		int parameterVal = parameterVals[preset_ind][curParameter + 5];
 		sprintf(buf, "Set the\r%s\rknob to %d.\rPress knob to go on.", parameterNames[curParameter], parameterVal);
 		lcd_showMessage(buf, huart4);
 		if (parameterVal != 0)
@@ -769,7 +769,7 @@ static void MX_UART4_Init(void)
   huart4.Init.WordLength = UART_WORDLENGTH_8B;
   huart4.Init.StopBits = UART_STOPBITS_1;
   huart4.Init.Parity = UART_PARITY_NONE;
-  huart4.Init.Mode = UART_MODE_TX_RX;
+  huart4.Init.Mode = UART_MODE_TX;
   huart4.Init.HwFlowCtl = UART_HWCONTROL_NONE;
   huart4.Init.OverSampling = UART_OVERSAMPLING_16;
   if (HAL_UART_Init(&huart4) != HAL_OK)
