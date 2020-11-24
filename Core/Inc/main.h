@@ -58,7 +58,8 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 void Error_Handler(void);
 
 /* USER CODE BEGIN EFP */
-
+void increase_octave();
+void decrease_octave();
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
@@ -78,8 +79,10 @@ void Error_Handler(void);
 #define LD_SW_LFO_TRGT_GPIO_Port GPIOF
 #define OCTAVE_DOWN_PUSHB_Pin GPIO_PIN_1
 #define OCTAVE_DOWN_PUSHB_GPIO_Port GPIOC
+#define OCTAVE_DOWN_PUSHB_EXTI_IRQn EXTI1_IRQn
 #define OCTAVE_DOWN_PUSHBC2_Pin GPIO_PIN_2
 #define OCTAVE_DOWN_PUSHBC2_GPIO_Port GPIOC
+#define OCTAVE_DOWN_PUSHBC2_EXTI_IRQn EXTI2_IRQn
 #define RTRENC_PSH_Pin GPIO_PIN_3
 #define RTRENC_PSH_GPIO_Port GPIOC
 #define RTRENC_PSH_EXTI_IRQn EXTI3_IRQn

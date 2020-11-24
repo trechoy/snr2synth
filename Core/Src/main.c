@@ -152,6 +152,16 @@ void reset_rtrencFlags()
 	RTRENC_PUSHB_EVENT = 0;
 }
 
+void increase_octave()
+{
+	MIDI_octave_offset++;
+}
+
+void decrease_octave()
+{
+	MIDI_octave_offset--;
+}
+
 void LED_Test()
 {
 	lcd_showMessage("Welcome to the\rLED Test Mode!", huart4);
@@ -246,16 +256,54 @@ void Demo_Mode(int preset)
 	char * buf[80] = {0};
 	char * switch_setting = NULL;
 
+	MIDI_octave_offset = 0;
 	reset_rtrencFlags();
 	sprintf(buf, "Showing parameters\rfor %s\r\rPress knob to start.", presetBank[preset_ind]);
 	lcd_showMessage(buf, huart4);
 	while (!RTRENC_PUSHB_EVENT)
 	{
-		HAL_Delay(70);
+		HAL_Delay(100);
 	}
 	reset_rtrencFlags();
 
 	//step 1: octave switcher
+	int octave_preset = parameterVals[preset_ind][0];
+	if (octave_preset < 0)
+	{
+		sprintf(buf, "Decrease Octave\rto %d.\r\rPress knob to go on.", octave_preset);
+	}
+	else if (octave_preset > 0)
+	{
+		sprintf(buf, "Increase Octave\rto +%d.\r\rPress knob to go on.", octave_preset);
+	}
+	else
+	{
+		sprintf(buf, "Octave is already\rset to 0.\r\rPress knob to go on.");
+	}
+	lcd_showMessage(buf, huart4);
+
+	while (!RTRENC_PUSHB_EVENT)
+	{
+		if (MIDI_octave_offset > octave_preset)
+		{
+			//blink decrease LED
+			HAL_GPIO_WritePin(LD_OCTAVE_UP_GPIO_Port, LD_OCTAVE_UP_Pin, 0);
+			HAL_GPIO_TogglePin(LD_OCTAVE_DOWN_GPIO_Port, LD_OCTAVE_DOWN_Pin);
+		}
+		else if (MIDI_octave_offset < octave_preset)
+		{
+			//blink increase LED
+			HAL_GPIO_WritePin(LD_OCTAVE_DOWN_GPIO_Port, LD_OCTAVE_DOWN_Pin, 0);
+			HAL_GPIO_TogglePin(LD_OCTAVE_UP_GPIO_Port, LD_OCTAVE_UP_Pin);
+		}
+		else
+		{
+			//both of them are on
+			HAL_GPIO_WritePin(LD_OCTAVE_UP_GPIO_Port, LD_OCTAVE_UP_Pin, 1);
+			HAL_GPIO_WritePin(LD_OCTAVE_DOWN_GPIO_Port, LD_OCTAVE_DOWN_Pin, 1);
+		}
+		HAL_Delay(600);
+	}
 
 	//step 2: switch LED for vco1
 	switch (parameterVals[preset_ind][1])
@@ -278,7 +326,7 @@ void Demo_Mode(int preset)
 	reset_rtrencFlags();
 	while (!RTRENC_PUSHB_EVENT)
 	{
-		HAL_Delay(70);
+		HAL_Delay(100);
 	}
 	reset_rtrencFlags();
 	HAL_GPIO_WritePin(LD_SW_VCO1_GPIO_Port, LD_SW_VCO1_Pin, 0);
@@ -304,7 +352,7 @@ void Demo_Mode(int preset)
 	reset_rtrencFlags();
 	while (!RTRENC_PUSHB_EVENT)
 	{
-		HAL_Delay(70);
+		HAL_Delay(100);
 	}
 	reset_rtrencFlags();
 	HAL_GPIO_WritePin(LD_SW_VCO2_GPIO_Port, LD_SW_VCO2_Pin, 0);
@@ -327,7 +375,7 @@ void Demo_Mode(int preset)
 	reset_rtrencFlags();
 	while (!RTRENC_PUSHB_EVENT)
 	{
-		HAL_Delay(70);
+		HAL_Delay(100);
 	}
 	reset_rtrencFlags();
 	HAL_GPIO_WritePin(LD_SW_LFO_WV_GPIO_Port, LD_SW_LFO_WV_Pin, 0);
@@ -350,7 +398,7 @@ void Demo_Mode(int preset)
 	reset_rtrencFlags();
 	while (!RTRENC_PUSHB_EVENT)
 	{
-		HAL_Delay(70);
+		HAL_Delay(100);
 	}
 	reset_rtrencFlags();
 	HAL_GPIO_WritePin(LD_SW_LFO_TRGT_GPIO_Port, LD_SW_LFO_TRGT_Pin, 0);
@@ -378,11 +426,11 @@ void Demo_Mode(int preset)
 		reset_rtrencFlags();
 		while (!RTRENC_PUSHB_EVENT)
 		{
-			HAL_Delay(70);
+			HAL_Delay(100);
 			if (parameterVal == 0)
 			{
 				flashLED(curParameter);
-				HAL_Delay(530);
+				HAL_Delay(500);
 			}
 		}
 		reset_rtrencFlags();
@@ -395,14 +443,16 @@ void Demo_Mode(int preset)
 	reset_rtrencFlags();
 	while (!RTRENC_PUSHB_EVENT)
 	{
-		HAL_Delay(70);
+		HAL_Delay(100);
 	}
 	reset_rtrencFlags();
+	MIDI_octave_offset = 0;
 }
 
 void updateDAC()
 {
-	if (MIDI_current_note == 0 || MIDI_current_note < 5 || MIDI_current_note > 76)
+	char temp = MIDI_current_note + (12 * MIDI_octave_offset);
+	if (temp == 0 || temp < 5 || temp > 76)
 	{
 		DAC->DHR12R1 = 0;
 		//set gate low
@@ -410,8 +460,8 @@ void updateDAC()
 	}
 	else
 	{
-		DAC->DHR12R1 = (int) (0.00039 * pow(MIDI_current_note, 4)) - (0.03641 * pow(MIDI_current_note, 3)) + (1.32121 * pow(MIDI_current_note, 2)) - (9.4721 * MIDI_current_note) + 34.89;
-		//set gate hi
+		DAC->DHR12R1 = (int) (0.00039 * pow(temp, 4)) - (0.03641 * pow(temp, 3)) + (1.32121 * pow(temp, 2)) - (9.4721 * temp) + 34.89;
+		//set gate high
 		HAL_GPIO_WritePin(DAC_GATE_GPIO_Port, DAC_GATE_Pin, 1);
 	}
 }
@@ -532,7 +582,7 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  HAL_Delay(80);
+	  HAL_Delay(130);
   }
   /* USER CODE END 3 */
 }
@@ -848,6 +898,12 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_Init(USB_OverCurrent_GPIO_Port, &GPIO_InitStruct);
 
   /* EXTI interrupt init*/
+  HAL_NVIC_SetPriority(EXTI1_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI1_IRQn);
+
+  HAL_NVIC_SetPriority(EXTI2_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI2_IRQn);
+
   HAL_NVIC_SetPriority(EXTI3_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(EXTI3_IRQn);
 
